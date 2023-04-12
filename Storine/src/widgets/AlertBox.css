@@ -1,0 +1,13 @@
+.divAlert {
+    align-items: center;
+    justify-content: space-around;
+    border-radius: 4px;
+    padding: 10px;
+    background-color: rgb(192, 192, 192);
+}
+
+.bYesAlert {
+    background-color: black;
+    color: white;
+    border-radius: 4px;
+}

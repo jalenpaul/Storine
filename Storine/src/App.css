@@ -1,0 +1,41 @@
+.body {
+  display: flex;
+  flex-direction: column;
+}
+
+.tab-headers {
+  display: flex;
+  justify-content: space-evenly;
+  margin-bottom: 1rem;
+}
+
+.tab-header {
+  flex-grow: 1;
+  text-align: center;
+  padding: 0.5rem;
+  border: 1px solid black;
+  cursor: pointer;
+}
+
+.tab-header.active {
+  background-color: black;
+  color: white;
+}
+
+.tab-content {
+  position: relative;
+  height: 100%;
+}
+
+.tab-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+.tab-panel.active {
+  opacity: 1;
+}
