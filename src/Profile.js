@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from './server/FirebaseConfig';
-import AlertBox from './widgets/AlertBox';
+import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from './server/FirebaseConfig.js';
 
+//libraries
+import QRCode from "react-qr-code";
+
+import AlertBox from './widgets/AlertBox';
 import './Profile.css';
 import './index.css';
 
@@ -16,6 +19,15 @@ function Profile() {
     //Profile
     function handleSearchKeyUp() {
 
+    }
+
+    function handleCopyClick() {
+        var currentLocation = window.location.toString();
+        navigator.clipboard.writeText(currentLocation).then(() => {
+            alert("successfully copied");
+        }).catch(() => {
+            alert("something went wrong");
+        });
     }
 
     //Login Or Sign Up
@@ -46,7 +58,7 @@ function Profile() {
         } else if (!validateEmail(email)) {
             alert('Please enter a valid email');
         } else if (!validatePassword(password)) {
-            alert('Password must be > 8 characters, contain one specil character, and contain both letters and numbers.');
+            alert('Password must be > 8 characters, contain one special character, and contain both letters and numbers.');
         } else if (email.trim().length > emailMaxLength || password.trim().length > passwordMaxLength) {
             alert('Email must be < 320. Password must be < 100')
         } else {
@@ -83,11 +95,19 @@ function Profile() {
 
     return (
         <div>
-            {!user &&
+            {user &&
                 <div>
-                    <div id='divProfileHeader'>
-                        <input type="search" onKeyUp={handleSearchKeyUp} placeholder='Search files here...' />
-                        <datalist id='dl_profile_sortFiles'>
+                    <div id='div_profile_top' className='divMainStylized'>
+                        <QRCode size={200} value={window.location}/>
+                        <button className='BtnSubmit' onClick={handleCopyClick} style={{marginTop: "1%"}}>Copy</button>
+                    </div>
+
+                    <div id='divProfileHeader' className='divMainStylized'>
+                        <form>
+                            <input type="search" onKeyUp={handleSearchKeyUp} placeholder='Search files here...' />
+                            <input type="reset" value="X" alt="Clear the search form"/>
+                        </form>
+                        <select id='dl_profile_sortFiles'>
                             <option value="date_newest">Date (recent)</option>
                             <option value="date_oldest">Date (oldest)</option>
                             <option value="popularity_most">Popularity (most)</option>
@@ -96,13 +116,26 @@ function Profile() {
                             <option value="size_smallest">Size (smallest)</option>
                             <option value="title_az">Title (A-Z)</option>
                             <option value="title_za">Title (Z-A)</option>
-                        </datalist>
+                        </select>
+                    </div>
+
+                    <div id='div_profile_content'>
+                        <ul id='ul_profile_content' className='contentGrid'>
+                            <li className="divMainStylized contentGridItem">1</li>
+                            <li className="divMainStylized contentGridItem">2</li>
+                            <li className="divMainStylized contentGridItem">3</li>  
+                            <li className="divMainStylized contentGridItem">4</li>
+                            <li className="divMainStylized contentGridItem">5</li>
+                            <li className="divMainStylized contentGridItem">6</li>  
+                            <li className="divMainStylized contentGridItem">7</li>
+                            <li className="divMainStylized contentGridItem">8</li> 
+                        </ul>
                     </div>
                 </div>
             }
 
 
-            {user && <form id='form_body' onSubmit={handleSubmit}>
+            {!user && <form id='form_body' onSubmit={handleSubmit}>
                 <h1>Login Or Sign Up</h1>
                 <h3>Enter an email and password to login, if no account exists you can sign up.</h3>
                 <AlertBox
@@ -116,7 +149,7 @@ function Profile() {
                 </div>
                 <div className='divTextInputs'>
                     <label htmlFor="input_password">Password</label>
-                    <input className='inputLoginOrSignUp' type="text" id="input_password" value={password} onChange={handlePasswordChange} />
+                    <input className='inputLoginOrSignUp' type="password" id="input_password" value={password} onChange={handlePasswordChange} />
                 </div>
                 <button id='b_submit' onClick={handleSubmit} className='BtnSubmit' type='submit'>Submit</button>
             </form>}

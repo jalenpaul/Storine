@@ -7,18 +7,6 @@ import { useMediaQuery } from 'react-responsive';
 
 
 export default function Header() {
-    function openNav() {
-        document.getElementById("mySidenav").style.width = "250px";
-        document.getElementById('header').style.visibility = "hidden";
-    }
-    
-    function closeNav() {
-        document.getElementById("mySidenav").style.width = "0";
-        document.getElementById('header').style.visibility = "visible";
-    }
-
-    const isPortrait = useMediaQuery({ query: '(orientation: portrait)' });
-
     const helmetContext = {};
     return (
        <HelmetProvider context={helmetContext}>
@@ -36,8 +24,12 @@ export default function Header() {
                     <img/>
                 </div>
                 <div>
-                    <button id="b_profile_sideMenu" onClick={openNav} className="IconBtn">
+                    <button id="b_profile_sideMenu" className="IconBtn">
                         <i id="ic_mail" className="material-icons large">mail</i>
+                    </button>
+
+                    <button id="b_profile_sideMenu" className="IconBtn">
+                        <i id="ic_settings" className="material-icons large">settings</i>
                     </button>
                 </div>
             </header>
