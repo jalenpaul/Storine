@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from './server/FirebaseConfig.js';
+import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, fetchSignInMethodsForEmail, authenticateAccountStatus } from './server/FirebaseConfig.js';
 
 //libraries
 import QRCode from "react-qr-code";
@@ -14,7 +14,9 @@ function Profile() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [abIsInUse, setAbIsInUse] = useState(false);
-    const [user, setUser] = useState(undefined);
+    const [user, setUser] = useState(sessionStorage.getItem('UID'));
+
+    authenticateAccountStatus();
 
     //Profile
     function handleSearchKeyUp() {
@@ -62,18 +64,24 @@ function Profile() {
         } else if (email.trim().length > emailMaxLength || password.trim().length > passwordMaxLength) {
             alert('Email must be < 320. Password must be < 100')
         } else {
-            const emailExists = auth().getUserByEmail(email).then(() => true).catch(() => false);
-            if (emailExists) {
-                signInWithEmailAndPassword(auth, email, password).then((userCredential) => {
-                    setUser(userCredential.user);
-                }).catch((error) => {
-                    const errorCode = error.code;
-                    const errorMessage = error.message;
-                });
-
-            } else {
-                setAbIsInUse(true);
-            }
+            fetchSignInMethodsForEmail(auth, email).then((signInMethods) => {
+                if (signInMethods.length > 0) {
+                    signInWithEmailAndPassword(auth, email, password).then((userCredential) => {
+                        setUser(userCredential.user);
+                    }).catch((error) => {
+                        const errorCode = error.code;
+                        const errorMessage = error.message;
+                        alert("Sorry an error occurred");
+                        console.log(errorMessage);
+                    });
+                } else {
+                    setAbIsInUse(true);
+                }
+            })
+            .catch((error) => {
+                alert("Sorry an error occurred");
+                console.log(error);
+            });
         }
     }
 
@@ -98,7 +106,7 @@ function Profile() {
             {user &&
                 <div>
                     <div id='div_profile_top' className='divMainStylized'>
-                        <QRCode size={200} value={window.location}/>
+                        <QRCode size={200} value={window.location.toString()}/>
                         <button className='BtnSubmit' onClick={handleCopyClick} style={{marginTop: "1%"}}>Copy</button>
                     </div>
 

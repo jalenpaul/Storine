@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 
+import { authenticateAccountStatus, firestore, addDoc, setDoc, ref, storage, uploadBytes, doc, collection } from './server/FirebaseConfig';
+
 import './Upload.css';
+
+import { v4 as uuidv4 } from 'uuid';
 
 function Upload() {
     const titleMaxLength = 25;
@@ -8,6 +12,10 @@ function Upload() {
     const [fileValue, setFileValue] = useState(null);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
+    const [intErrorLevel, setIntErrorLevel] = useState(0);
+    const [user, setUser] = useState(sessionStorage.getItem('UID'));
+
+    authenticateAccountStatus();
 
     const titleColorStyle = {
         color: title.length > titleMaxLength? 'red' : 'gray'
@@ -31,10 +39,56 @@ function Upload() {
         event.preventDefault();
         if (title.trim() === '' || description.trim() === '' || fileValue == null) {
             alert('Missing either title, description, or pdf file.');
+        } else if (!user) {
+            alert('Please login under the "Profile" tab before you upload');
         } else {
-            //TODO add firebase upload
+            return new Promise(function(resolve, reject) {
+                switch (intErrorLevel) {
+    
+                    case 1: 
+                        uploadPost(resolve, reject);
+                        break;
+    
+                    default:
+                        uploadFile(resolve, reject);
+                        break;
+                }
+            });
         }
     };
+
+    function uploadFile(resolve, reject) {
+        const storageRef = ref(storage, 'Files/' + uuidv4() + ".pdf");
+        uploadBytes(storageRef, fileValue).then((snapshot) => {
+            const docRef = snapshot.ref;
+            if (docRef == null) {
+                alert("Error while uploadiing pdf file.");
+                reject();
+            } else {
+                uploadPost(resolve, reject, docRef.toString());
+            }
+        });
+    }
+
+    function uploadPost(resolve, reject, docRef) {
+        addDoc(collection(firestore, "Files"), {
+            ownerUID: user,
+            fileLocation: docRef,
+            title: title,
+            description: description,
+        }).then(() => {
+            alert("Upload Successful");
+            setFileValue(null);
+            setTitle('');
+            setDescription('');
+            resolve();
+        }).catch((error) => {
+            alert("Error while uploading post.");
+            console.log(error);
+            setIntErrorLevel(1);
+            reject();
+        })
+    }
     
     // drag state
     const [dragActive, setDragActive] = React.useState(false);

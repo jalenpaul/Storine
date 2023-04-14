@@ -1,7 +1,7 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.3/firebase-app.js';
-import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.6.3/firebase-auth.js';
-import { getStorage } from 'https://www.gstatic.com/firebasejs/9.6.3/firebase-storage.js';
-import { getFirestore, collection, where, getDocs, getDoc, setDoc, doc, query, getDocFromCache, } from 'https://www.gstatic.com/firebasejs/9.6.3/firebase-firestore.js';
+import { initializeApp } from 'firebase/app';
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, fetchSignInMethodsForEmail } from 'firebase/auth';
+import { getStorage, ref, uploadBytes, } from 'firebase/storage';
+import { getFirestore, collection, where, getDocs, getDoc, setDoc, doc, query, getDocFromCache, addDoc } from 'firebase/firestore';
 
 
 const firebaseConfig = {
@@ -13,27 +13,26 @@ const firebaseConfig = {
     appId: "1:201618568108:web:685a236c038d4f330b0009",
     measurementId: "G-EV8XYDNQKS"
 };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const storage = getStorage(app);
 const firestore = getFirestore(app);
 
 function authenticateAccountStatus() {
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-          // User is signed in, see docs for a list of available properties
-          // https://firebase.google.com/docs/reference/js/firebase.User
-          sessionStorage.setItem("User", user);
-          // ...
-        } else {
-          // User is signed out
-          // ...
-        }
-    });
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+        sessionStorage.setItem("User", user);
+        sessionStorage.setItem("UID", user.uid);
+    } else {
+        sessionStorage.setItem("User", null);
+        sessionStorage.setItem("UID", null);
+    }
+  });
 }
 
-export { auth, onAuthStateChanged, 
-    storage, 
-    firestore, collection, where, getDocs, getDoc, setDoc, doc, query, getDocFromCache,
-    authenticateAccountStatus, createUserWithEmailAndPassword, signInWithEmailAndPassword
+export { auth, onAuthStateChanged, fetchSignInMethodsForEmail, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    storage, ref, uploadBytes,
+    firestore, collection, where, getDocs, getDoc, setDoc, doc, query, getDocFromCache, addDoc,
+    authenticateAccountStatus,
 }

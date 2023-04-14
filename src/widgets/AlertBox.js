@@ -1,4 +1,4 @@
-import React, {ReactNode, useState} from 'react';
+import React, {ReactNode, useEffect, useState} from 'react';
 
 import './AlertBox.css';
 
@@ -10,6 +10,10 @@ function AlertBox(props) {
     function handleNoClick() {
         setIsVisible(invisible);
     }
+
+    useEffect(() => {
+        setIsVisible(props.isInUse? visible : invisible);
+    }, [props.isInUse]);
 
     return (
         <div className='divAlert' style={{display: isVisible}}>
