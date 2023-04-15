@@ -1,26 +1,47 @@
-import React, { useState } from 'react';
-import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, fetchSignInMethodsForEmail, authenticateAccountStatus } from './server/FirebaseConfig.js';
+import React, { useState, useEffect } from 'react';
+import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, fetchSignInMethodsForEmail, authenticateAccountStatus, firestore } from './server/FirebaseConfig.js';
 
 //libraries
 import QRCode from "react-qr-code";
 
 import AlertBox from './widgets/AlertBox';
+import FileListItem from './widgets/FileListItem.js';
 import './Profile.css';
 import './index.css';
 
 function Profile() {
     const emailMaxLength = 320;
     const passwordMaxLength = 100;
+    const pageSize = 6;
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [abIsInUse, setAbIsInUse] = useState(false);
     const [user, setUser] = useState(sessionStorage.getItem('UID'));
+    const [sortValue, setSortValue] = useState("date_newest");
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
 
     authenticateAccountStatus();
 
-    //Profile
-    function handleSearchKeyUp() {
+    useEffect(() => {
+        if (searchQuery !== '') {
+            firestore.collection('Files')
+            .where('title', '>=', searchQuery)
+            .where('title', '<=', searchQuery + '\uf8ff')
+            .get()
+            .then((snapshot) => {
+                const results = snapshot.docs.map((doc) => doc.data());
+                setSearchResults(results);
+            });
+        } else {
+            setSearchResults([]);
+        }
+    }, [searchQuery]);
 
+    //Profile
+    function handleSearchKeyUp(event) {
+        const query = event.target.value.trim();
+        setSearchQuery(query);
     }
 
     function handleCopyClick() {
@@ -30,6 +51,14 @@ function Profile() {
         }).catch(() => {
             alert("something went wrong");
         });
+    }
+
+    function handleSearchKeyUp() {
+        
+    }
+
+    function handleSortChange(e) {
+        setSortValue(e.target.value);
     }
 
     //Login Or Sign Up
@@ -115,7 +144,7 @@ function Profile() {
                             <input type="search" onKeyUp={handleSearchKeyUp} placeholder='Search files here...' />
                             <input type="reset" value="X" alt="Clear the search form"/>
                         </form>
-                        <select id='dl_profile_sortFiles'>
+                        <select id='dl_profile_sortFiles' value={sortValue} onChange={handleSortChange}>
                             <option value="date_newest">Date (recent)</option>
                             <option value="date_oldest">Date (oldest)</option>
                             <option value="popularity_most">Popularity (most)</option>
@@ -129,14 +158,13 @@ function Profile() {
 
                     <div id='div_profile_content'>
                         <ul id='ul_profile_content' className='contentGrid'>
-                            <li className="divMainStylized contentGridItem">1</li>
-                            <li className="divMainStylized contentGridItem">2</li>
-                            <li className="divMainStylized contentGridItem">3</li>  
-                            <li className="divMainStylized contentGridItem">4</li>
-                            <li className="divMainStylized contentGridItem">5</li>
-                            <li className="divMainStylized contentGridItem">6</li>  
-                            <li className="divMainStylized contentGridItem">7</li>
-                            <li className="divMainStylized contentGridItem">8</li> 
+                            {searchResults.map((result) => (
+                                <FileListItem
+                                    fileURL={result.fileLocation}
+                                    title={result.title}
+                                    description={result.description}
+                                />
+                            ))}
                         </ul>
                     </div>
                 </div>

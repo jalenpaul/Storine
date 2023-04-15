@@ -165,7 +165,7 @@ function Upload() {
 
                 <div className='divTextInputs'>
                     <label htmlFor="ta_description">Description</label>
-                    <textarea type="text" id="ta_description" onChange={handleDescriptionChange} rows="10"/>
+                    <textarea type="text" id="ta_description" value={description} onChange={handleDescriptionChange} rows="10"/>
                     <h5 id='h5DescriptionLength' style={descriptionColorStyle}>{description.length} / {descriptionMaxLength}</h5>
                 </div>
 
