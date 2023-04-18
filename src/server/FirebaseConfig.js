@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, fetchSignInMethodsForEmail } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, fetchSignInMethodsForEmail, signInWithPopup, sendPasswordResetEmail, GoogleAuthProvider } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, } from 'firebase/storage';
-import { getFirestore, collection, where, getDocs, getDoc, setDoc, doc, query, getDocFromCache, addDoc } from 'firebase/firestore';
+import { getFirestore, collection, where, getDocs, getDoc, setDoc, doc, query, getDocFromCache, addDoc, serverTimestamp } from 'firebase/firestore';
 
 
 const firebaseConfig = {
@@ -18,6 +18,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const storage = getStorage(app);
 const firestore = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
 
 function authenticateAccountStatus() {
   onAuthStateChanged(auth, (user) => {
@@ -31,8 +32,8 @@ function authenticateAccountStatus() {
   });
 }
 
-export { auth, onAuthStateChanged, fetchSignInMethodsForEmail, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+export { auth, onAuthStateChanged, fetchSignInMethodsForEmail, createUserWithEmailAndPassword, signInWithEmailAndPassword, googleProvider, signInWithPopup, sendPasswordResetEmail, GoogleAuthProvider,
     storage, ref, uploadBytes,
-    firestore, collection, where, getDocs, getDoc, setDoc, doc, query, getDocFromCache, addDoc,
+    firestore, collection, where, getDocs, getDoc, setDoc, doc, query, getDocFromCache, addDoc, serverTimestamp,
     authenticateAccountStatus,
 }

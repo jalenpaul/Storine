@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, fetchSignInMethodsForEmail, authenticateAccountStatus, firestore } from './server/FirebaseConfig.js';
+import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, fetchSignInMethodsForEmail, authenticateAccountStatus, firestore, googleProvider, signInWithPopup, sendPasswordResetEmail, GoogleAuthProvider } from './server/FirebaseConfig.js';
+import { collection, limit, orderBy, query, getDoc, where, startAfter, collectionGroup, getDocs } from 'firebase/firestore';
+
+import googleLogoPNG from '../src/res/SVGs/googleLogoPNG.png';
 
 //libraries
 import QRCode from "react-qr-code";
@@ -12,36 +15,39 @@ import './index.css';
 function Profile() {
     const emailMaxLength = 320;
     const passwordMaxLength = 100;
-    const pageSize = 6;
+    const PAGE_SIZE = 6;
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [abIsInUse, setAbIsInUse] = useState(false);
     const [user, setUser] = useState(sessionStorage.getItem('UID'));
+
+    const [posts, setPosts] = useState([]);
     const [sortValue, setSortValue] = useState("date_newest");
-    const [searchQuery, setSearchQuery] = useState('');
-    const [searchResults, setSearchResults] = useState([]);
 
     authenticateAccountStatus();
 
-    useEffect(() => {
-        if (searchQuery !== '') {
-            firestore.collection('Files')
-            .where('title', '>=', searchQuery)
-            .where('title', '<=', searchQuery + '\uf8ff')
-            .get()
-            .then((snapshot) => {
-                const results = snapshot.docs.map((doc) => doc.data());
-                setSearchResults(results);
-            });
-        } else {
-            setSearchResults([]);
-        }
-    }, [searchQuery]);
-
     //Profile
-    function handleSearchKeyUp(event) {
-        const query = event.target.value.trim();
-        setSearchQuery(query);
+    useEffect(() => {
+        fetchPaginatedData(PAGE_SIZE, null);
+    }, []);
+
+    const fetchPaginatedData = async (startAfterDoc) => {
+        try {
+            const initialQuery = query(collection(firestore, "Files"), where('ownerUID', "==", user), orderBy('timeStamp', 'desc'), limit(PAGE_SIZE), startAfter(startAfterDoc));
+            const querySnapshot = await getDocs(initialQuery);
+            const newDocs = querySnapshot.docs.map((doc) => ({
+                id: doc.id,
+                ownerUID: doc.ownerUID,
+                fileLocation: doc.fileLocation,
+                title: doc.title,
+                description: doc.description,
+                timeStamp: doc.timeStamp,
+            }));
+            setPosts(newDocs.concat(posts));
+        } catch (error) {
+            console.log(error);
+            alert(error.message);
+        }
     }
 
     function handleCopyClick() {
@@ -51,10 +57,6 @@ function Profile() {
         }).catch(() => {
             alert("something went wrong");
         });
-    }
-
-    function handleSearchKeyUp() {
-        
     }
 
     function handleSortChange(e) {
@@ -69,6 +71,7 @@ function Profile() {
         }).catch((error) => {
             const errorCode = error.code;
             const errorMessage = error.message;
+            alert("Sorry, an error occurred while signing up");
         })
     }
 
@@ -114,6 +117,40 @@ function Profile() {
         }
     }
 
+    function handleForgotPassword() {
+        if (email.trim() === '' || validateEmail(email.trim())) {
+            sendPasswordResetEmail(auth, email).then(() => {
+                alert("Password reset link, please check your email.");
+            }).catch((error) => {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                alert("Sorry, an error occurred. Please verify that your email is formatted correctly.");
+            });
+        }
+    }
+
+    function handleSignInWithGoogle() {
+        signInWithPopup(auth, googleProvider).then((result) => {
+            // This gives you a Google Access Token. You can use it to access the Google API.
+            const credential = GoogleAuthProvider.credentialFromResult(result);
+            const token = credential.accessToken;
+            // The signed-in user info.
+            setUser(result.user);
+            // IdP data available using getAdditionalUserInfo(result)
+            // ...
+        }).catch((error) => {
+            // Handle Errors here.
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            // The email of the user's account used.
+            const email = error.customData.email;
+            // The AuthCredential type that was used.
+            const credential = GoogleAuthProvider.credentialFromError(error);
+            alert('Sorry, an error occurred:' + errorMessage)
+            // ...
+        });
+    }
+
     const validateEmail = (email) => {
         return String(email)
             .toLowerCase()
@@ -140,10 +177,6 @@ function Profile() {
                     </div>
 
                     <div id='divProfileHeader' className='divMainStylized'>
-                        <form>
-                            <input type="search" onKeyUp={handleSearchKeyUp} placeholder='Search files here...' />
-                            <input type="reset" value="X" alt="Clear the search form"/>
-                        </form>
                         <select id='dl_profile_sortFiles' value={sortValue} onChange={handleSortChange}>
                             <option value="date_newest">Date (recent)</option>
                             <option value="date_oldest">Date (oldest)</option>
@@ -158,7 +191,7 @@ function Profile() {
 
                     <div id='div_profile_content'>
                         <ul id='ul_profile_content' className='contentGrid'>
-                            {searchResults.map((result) => (
+                            {posts.map((result) => (
                                 <FileListItem
                                     fileURL={result.fileLocation}
                                     title={result.title}
@@ -171,24 +204,28 @@ function Profile() {
             }
 
 
-            {!user && <form id='form_body' onSubmit={handleSubmit}>
-                <h1>Login Or Sign Up</h1>
-                <h3>Enter an email and password to login, if no account exists you can sign up.</h3>
-                <AlertBox
-                    message="An account doesn't exist with this email, sign up with this information?"
-                    yesClick={handleABYesClick}
-                    isInUse={abIsInUse}
-                />
-                <div className='divTextInputs'>
-                    <label htmlFor="input_email">Email</label>
-                    <input className='inputLoginOrSignUp' type="text" id="input_email" value={email} onChange={handleEmailChange} />
-                </div>
-                <div className='divTextInputs'>
-                    <label htmlFor="input_password">Password</label>
-                    <input className='inputLoginOrSignUp' type="password" id="input_password" value={password} onChange={handlePasswordChange} />
-                </div>
-                <button id='b_submit' onClick={handleSubmit} className='BtnSubmit' type='submit'>Submit</button>
-            </form>}
+            {!user && <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                <form id='form_body' onSubmit={handleSubmit}>
+                    <h1>Login Or Sign Up</h1>
+                    <h3>Enter an email and password to login, if no account exists you can sign up.</h3>
+                    <AlertBox
+                        message="An account doesn't exist with this email, sign up with this information?"
+                        yesClick={handleABYesClick}
+                        isInUse={abIsInUse}
+                    />
+                    <div className='divTextInputs'>
+                        <label htmlFor="input_email">Email</label>
+                        <input className='inputLoginOrSignUp' type="text" id="input_email" value={email} onChange={handleEmailChange} />
+                    </div>
+                    <div className='divTextInputs'>
+                        <label htmlFor="input_password">Password</label>
+                        <input className='inputLoginOrSignUp' type="password" id="input_password" value={password} onChange={handlePasswordChange} />
+                    </div>
+                    <button id='b_submit' onClick={handleSubmit} className='BtnSubmit' type='submit'>Submit</button>
+                    <button className="upload-button" type='button' onClick={handleForgotPassword}>Forgot Password</button>
+                </form>
+                <button className='btnTextWithIcon' onClick={handleSignInWithGoogle}><img className='imgButtonLogo' src={googleLogoPNG}/>Sign in with Google</button>
+            </div>}
         </div>
     )
 }

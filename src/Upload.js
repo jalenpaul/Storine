@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { authenticateAccountStatus, firestore, addDoc, setDoc, ref, storage, uploadBytes, doc, collection } from './server/FirebaseConfig';
+import { authenticateAccountStatus, firestore, addDoc, ref, storage, uploadBytes, collection, serverTimestamp } from './server/FirebaseConfig';
 
 import './Upload.css';
 
@@ -76,6 +76,7 @@ function Upload() {
             fileLocation: docRef,
             title: title,
             description: description,
+            timeStamp: serverTimestamp(),
         }).then(() => {
             alert("Upload Successful");
             setFileValue(null);
