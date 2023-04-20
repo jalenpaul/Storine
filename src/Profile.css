@@ -23,7 +23,6 @@ input[type="search"] {
     padding-right: 5px;
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
 }
 
 #div_profile_top {

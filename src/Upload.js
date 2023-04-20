@@ -58,14 +58,15 @@ function Upload() {
     };
 
     function uploadFile(resolve, reject) {
-        const storageRef = ref(storage, 'Files/' + uuidv4() + ".pdf");
+        const storagePath = 'Files/' + user + uuidv4() + ".pdf";
+        const storageRef = ref(storage, storagePath);
         uploadBytes(storageRef, fileValue).then((snapshot) => {
             const docRef = snapshot.ref;
             if (docRef == null) {
                 alert("Error while uploadiing pdf file.");
                 reject();
             } else {
-                uploadPost(resolve, reject, docRef.toString());
+                uploadPost(resolve, reject, storagePath.toString());
             }
         });
     }
@@ -113,7 +114,7 @@ function Upload() {
         e.stopPropagation();
         setDragActive(false);
         var file = e.dataTransfer.files[0];
-        if (file && (file.size / 1024) < 100) {
+        if (file && (file.size / 1024) < 999) {
             if (file.type === 'application/pdf') {
                 setFileValue(file);
             } else {
@@ -128,7 +129,7 @@ function Upload() {
     const handleChange = function(e) {
         e.preventDefault();
         var file = e.target.files[0];
-        if (file && (file.size / 1024) < 100) {
+        if (file && (file.size / 1024) < 999) {
             if (file.type === 'application/pdf') {
                 setFileValue(file);
             } else {

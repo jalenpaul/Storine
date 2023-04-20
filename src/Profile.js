@@ -23,6 +23,8 @@ function Profile() {
 
     const [posts, setPosts] = useState([]);
     const [sortValue, setSortValue] = useState("date_newest");
+    const [isLoading, setIsLoading] = useState(true);
+    const [isInitialBatch, setIsInitialBatch] = useState(true);
 
     authenticateAccountStatus();
 
@@ -33,17 +35,17 @@ function Profile() {
 
     const fetchPaginatedData = async (startAfterDoc) => {
         try {
-            const initialQuery = query(collection(firestore, "Files"), where('ownerUID', "==", user), orderBy('timeStamp', 'desc'), limit(PAGE_SIZE), startAfter(startAfterDoc));
+            const initialQuery = isInitialBatch? 
+                query(collection(firestore, "Files"), where('ownerUID', "==", user), orderBy('timeStamp', 'desc'), limit(PAGE_SIZE)) :
+                query(collection(firestore, "Files"), where('ownerUID', "==", user), orderBy('timeStamp', 'desc'), limit(PAGE_SIZE), startAfter(startAfterDoc));
             const querySnapshot = await getDocs(initialQuery);
             const newDocs = querySnapshot.docs.map((doc) => ({
                 id: doc.id,
-                ownerUID: doc.ownerUID,
-                fileLocation: doc.fileLocation,
-                title: doc.title,
-                description: doc.description,
-                timeStamp: doc.timeStamp,
+                ...doc.data()
             }));
-            setPosts(newDocs.concat(posts));
+            setPosts(posts.concat(newDocs));
+            setIsInitialBatch(false);
+            setIsLoading(false);
         } catch (error) {
             console.log(error);
             alert(error.message);
@@ -177,7 +179,12 @@ function Profile() {
                     </div>
 
                     <div id='divProfileHeader' className='divMainStylized'>
-                        <select id='dl_profile_sortFiles' value={sortValue} onChange={handleSortChange}>
+                         {/*
+                        <select id='select_profile_sortByTime' value={sortValueTime} onChange={handleSortTimeChange}>
+                            <option value="date_newest">Date (recent)</option>
+                            <option value="date_oldest">Date (oldest)</option>
+                        </select> */}
+                        <select id='select_profile_sortFiles' value={sortValue} onChange={handleSortChange}>
                             <option value="date_newest">Date (recent)</option>
                             <option value="date_oldest">Date (oldest)</option>
                             <option value="popularity_most">Popularity (most)</option>
@@ -190,15 +197,21 @@ function Profile() {
                     </div>
 
                     <div id='div_profile_content'>
-                        <ul id='ul_profile_content' className='contentGrid'>
-                            {posts.map((result) => (
-                                <FileListItem
-                                    fileURL={result.fileLocation}
-                                    title={result.title}
-                                    description={result.description}
-                                />
-                            ))}
-                        </ul>
+                        {isLoading?
+                            <h2>Loading</h2>
+                         :
+                            <ul id='ul_profile_content' className='contentGrid'>
+                                {posts.map((result) => (
+                                    <li key={result.id}>
+                                        <FileListItem
+                                            fileURL={result.fileLocation}
+                                            title={result.title}
+                                            description={result.description}
+                                        />
+                                    </li>
+                                ))}
+                            </ul>
+                        }
                     </div>
                 </div>
             }
