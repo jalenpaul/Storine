@@ -1,0 +1,43 @@
+#div_fileListItem {
+    padding: 0;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    max-height: 250px;
+}
+
+#div_fileListItem:hover {
+    opacity: 1;
+    cursor: pointer;
+}
+
+.div_fileListItem_docContainer {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    border-radius: 8px;
+    border-bottom: dotted 0.5px black;
+}
+
+.div_fileListItem_docContainer::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #cbd5e170;
+    z-index: 1;
+    transition: opacity 0.3s ease;
+}
+
+#div_fileListItem_textContainer {
+    padding: 2%;
+}
+
+#document_fileListItem_title {
+    align-items: center;
+    justify-content: center;
+}

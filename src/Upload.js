@@ -121,7 +121,7 @@ function Upload() {
                 alert('Can only upload a PDF');
             }
         } else {
-            alert('File is either unavailable or too large (> 100kb).')
+            alert('File is either unavailable or too large (> 999kb).')
         }
     };
     
@@ -136,7 +136,7 @@ function Upload() {
                 alert('Can only upload a PDF');
             }
         } else {
-            alert('File is either unavailable or too large (> 100kb).')
+            alert('File is either unavailable or too large (> 999kb).')
         }
     };
     

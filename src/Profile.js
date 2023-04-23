@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, fetchSignInMethodsForEmail, authenticateAccountStatus, firestore, googleProvider, signInWithPopup, sendPasswordResetEmail, GoogleAuthProvider } from './server/FirebaseConfig.js';
-import { collection, limit, orderBy, query, getDoc, where, startAfter, collectionGroup, getDocs } from 'firebase/firestore';
+import { collection, limit, orderBy, query, getDoc, where, startAfter, collectionGroup, getDocs, or } from 'firebase/firestore';
 
 import googleLogoPNG from '../src/res/SVGs/googleLogoPNG.png';
 
@@ -24,27 +24,23 @@ function Profile() {
     const [posts, setPosts] = useState([]);
     const [sortValue, setSortValue] = useState("date_newest");
     const [isLoading, setIsLoading] = useState(true);
-    const [isInitialBatch, setIsInitialBatch] = useState(true);
 
     authenticateAccountStatus();
 
     //Profile
     useEffect(() => {
-        fetchPaginatedData(PAGE_SIZE, null);
-    }, []);
+        fetchPaginatedData(null);
+    }, [sortValue]);
 
     const fetchPaginatedData = async (startAfterDoc) => {
         try {
-            const initialQuery = isInitialBatch? 
-                query(collection(firestore, "Files"), where('ownerUID', "==", user), orderBy('timeStamp', 'desc'), limit(PAGE_SIZE)) :
-                query(collection(firestore, "Files"), where('ownerUID', "==", user), orderBy('timeStamp', 'desc'), limit(PAGE_SIZE), startAfter(startAfterDoc));
-            const querySnapshot = await getDocs(initialQuery);
+            const query = createQuery(startAfterDoc);
+            const querySnapshot = await getDocs(query);
             const newDocs = querySnapshot.docs.map((doc) => ({
                 id: doc.id,
                 ...doc.data()
             }));
             setPosts(posts.concat(newDocs));
-            setIsInitialBatch(false);
             setIsLoading(false);
         } catch (error) {
             console.log(error);
@@ -62,8 +58,63 @@ function Profile() {
     }
 
     function handleSortChange(e) {
+        setPosts([]);
         setSortValue(e.target.value);
+        fetchPaginatedData(null);
     }
+
+    function createQuery(startAfterDoc) {
+        const fbCollection = collection(firestore, "Files");
+        const fbWhere = where('ownerUID', "==", user);
+        var fbOrderBy;
+        const fbLimit = limit(PAGE_SIZE);
+        switch (sortValue) {
+
+            case 'date_newest':
+                fbOrderBy = orderBy('timeStamp', 'desc');
+                break;
+
+            case 'date_oldest':
+                fbOrderBy = orderBy('timeStamp', 'asc');
+                break;
+
+            case 'popularity_most':
+                //TODO handle
+                break;
+
+            case 'popularity_least':
+                //TODO handle
+                break;
+
+            case 'size_largest':
+                //TODO handle
+                break;
+
+            case 'size_smallest':
+                //TODO handle
+                break;
+
+            case 'title_az':
+                fbOrderBy = orderBy('title', 'asc');
+                break;
+
+            case 'title_za':
+                fbOrderBy = orderBy('title', 'desc');
+                break;
+
+            default:
+                fbOrderBy = orderBy('timeStamp', 'desc');
+                break;
+        }
+
+        if (startAfterDoc != null) {
+            return query(fbCollection, fbWhere, fbOrderBy, fbLimit, startAfter(startAfterDoc));
+        } else {
+            return query(fbCollection, fbWhere, fbOrderBy, fbLimit);
+        }
+    }
+
+
 
     //Login Or Sign Up
     function handleABYesClick() {
@@ -201,13 +252,9 @@ function Profile() {
                             <h2>Loading</h2>
                          :
                             <ul id='ul_profile_content' className='contentGrid'>
-                                {posts.map((result) => (
-                                    <li key={result.id}>
-                                        <FileListItem
-                                            fileURL={result.fileLocation}
-                                            title={result.title}
-                                            description={result.description}
-                                        />
+                                {posts.map((result, index) => (
+                                    <li className='li_profile_fileItem' key={index}>
+                                        <FileListItem file={result}/>
                                     </li>
                                 ))}
                             </ul>

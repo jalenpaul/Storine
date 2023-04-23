@@ -46,6 +46,11 @@ input[type="search"] {
     flex-direction: column;
 }
 
+#li_profile_fileItem:hover::before {
+    z-index: 2;
+    background-color: black;
+}
+
 .divMainStylized {
     background-color: white;
     border-radius: 8px;
@@ -64,7 +69,7 @@ input[type="search"] {
 
 .contentGrid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 2fr);
   }
   
 .contentGridItem {
