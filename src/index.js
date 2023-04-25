@@ -3,11 +3,39 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import ErrorPage from './ErrorPage';
+import { createBrowserRouter, RouterProvider, } from "react-router-dom";
+import Home from './Home';
+import Inbox from './Inbox';
+import Settings from './Settings';
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
+//TODO add loader
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <App />,
+    errorElement: <ErrorPage />,
+    //loader: ,
+    children: [
+      {
+        path: "",
+        element: <Home/>,
+      },
+      {
+        path: "/Inbox",
+        element: <Inbox/>
+      },
+      {
+        path: "/Settings",
+        element: <Settings/>
+      }
+    ]
+  },
+]);
+
+ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <App />
+    <RouterProvider router={router} />
   </React.StrictMode>
 );
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Document, Page, pdfjs, } from 'react-pdf';
 import { getDownloadURL, ref } from 'firebase/storage';
 import { storage } from '../server/FirebaseConfig.js';
+
 //removes extra space below pdf when renderTextLayer is false
 import "react-pdf/dist/esm/Page/AnnotationLayer.css"
 
@@ -49,7 +50,7 @@ function FileListItem(props) {
                 break;
             }
         });
-    }, []);
+    }, [file]);
 
     function fileItemClick() {
         sessionStorage.setItem('document', file);

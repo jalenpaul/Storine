@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import Switch from "react-switch";
-import "./SettingsPage.css";
+//import Switch from "react-switch";
+import "./Settings.css";
 
 function SettingsPage() {
   const [darkMode, setDarkMode] = useState(false);
@@ -21,6 +21,8 @@ function SettingsPage() {
     setPushNotifications(isChecked);
     // You can write code to toggle push notifications
   };
+
+  /*
 
   return (
     <div className={"settings-container" + (darkMode ? " dark-mode" : "")}>
@@ -50,7 +52,7 @@ function SettingsPage() {
         />
       </div>
     </div>
-  );
+  ); */
 }
 
 export default SettingsPage;

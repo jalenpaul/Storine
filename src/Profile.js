@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, fetchSignInMethodsForEmail, authenticateAccountStatus, firestore, googleProvider, signInWithPopup, sendPasswordResetEmail, GoogleAuthProvider } from './server/FirebaseConfig.js';
 import { collection, limit, orderBy, query, getDoc, where, startAfter, collectionGroup, getDocs, or } from 'firebase/firestore';
 
@@ -24,15 +24,26 @@ function Profile() {
     const [posts, setPosts] = useState([]);
     const [sortValue, setSortValue] = useState("date_newest");
     const [isLoading, setIsLoading] = useState(true);
+    const ulRef = useRef(null);
 
     authenticateAccountStatus();
 
     //Profile
     useEffect(() => {
         fetchPaginatedData(null);
-    }, [sortValue]);
+    }, [sortValue, user]);
+
+    useEffect(() => {
+        if (user != null) {
+            window.addEventListener("scroll", handleScroll);
+            return () => {
+                window.removeEventListener("scroll", handleScroll);
+            };
+        }
+      }, []);
 
     const fetchPaginatedData = async (startAfterDoc) => {
+        setIsLoading(true);
         try {
             const query = createQuery(startAfterDoc);
             const querySnapshot = await getDocs(query);
@@ -43,6 +54,7 @@ function Profile() {
             setPosts(posts.concat(newDocs));
             setIsLoading(false);
         } catch (error) {
+            setIsLoading(false);
             console.log(error);
             alert(error.message);
         }
@@ -71,11 +83,11 @@ function Profile() {
         switch (sortValue) {
 
             case 'date_newest':
-                fbOrderBy = orderBy('timeStamp', 'desc');
+                fbOrderBy = orderBy('timeStamp', 'asc');
                 break;
 
             case 'date_oldest':
-                fbOrderBy = orderBy('timeStamp', 'asc');
+                fbOrderBy = orderBy('timeStamp', 'desc');
                 break;
 
             case 'popularity_most':
@@ -103,7 +115,7 @@ function Profile() {
                 break;
 
             default:
-                fbOrderBy = orderBy('timeStamp', 'desc');
+                fbOrderBy = orderBy('timeStamp', 'asc');
                 break;
         }
 
@@ -111,6 +123,12 @@ function Profile() {
             return query(fbCollection, fbWhere, fbOrderBy, fbLimit, startAfter(startAfterDoc));
         } else {
             return query(fbCollection, fbWhere, fbOrderBy, fbLimit);
+        }
+    }
+
+    function handleScroll() {
+        if (window.scrollY === document.documentElement.scrollHeight - window.innerHeight && !isLoading) {
+            //fetchPaginatedData(posts[posts.length - 1]);
         }
     }
 
@@ -248,16 +266,15 @@ function Profile() {
                     </div>
 
                     <div id='div_profile_content'>
-                        {isLoading?
-                            <h2>Loading</h2>
-                         :
-                            <ul id='ul_profile_content' className='contentGrid'>
+                            <ul id='ul_profile_content' className='contentGrid' ref={ulRef}>
                                 {posts.map((result, index) => (
                                     <li className='li_profile_fileItem' key={index}>
                                         <FileListItem file={result}/>
                                     </li>
                                 ))}
                             </ul>
+                        {isLoading &&
+                            <h2>Loading</h2>
                         }
                     </div>
                 </div>

@@ -3,6 +3,7 @@ import React from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { Helmet } from 'react-helmet-async';
 import { useMediaQuery } from 'react-responsive';
+import { Outlet, Link } from "react-router-dom";
 
 
 
@@ -24,9 +25,11 @@ export default function Header() {
                     <img/>
                 </div>
                 <div>
-                    <button id="b_profile_sideMenu" className="IconBtn">
-                        <i id="ic_mail" className="material-icons large">mail</i>
-                    </button>
+                    <Link to={'/Inbox'}>
+                        <button id="b_profile_sideMenu" className="IconBtn">
+                            <i id="ic_mail" className="material-icons large">mail</i>
+                        </button>
+                    </Link>
 
                     <button id="b_profile_sideMenu" className="IconBtn">
                         <i id="ic_settings" className="material-icons large">settings</i>
